@@ -30,7 +30,11 @@ describe('Export Communication section functions', () => {
 
   it('can detect 4 x buses', async () => {
     const result = Array.from(element.getBuses().keys())
-    expect(result).to.equal(['Bus_Z', 'Bus_B', 'Bus_K', 'Bus_L'])
+    expect(result).to.eql(['Bus_A', 'Bus_B', 'Bus_K', 'Bus_L'])
+  });
+
+  it('can detect equipment connected to a bus', async () => {
+    expect(element.getBusConnectedElements('Bus_A')).to.equal(['Bus_Z', 'Bus_B', 'Bus_K', 'Bus_L'])
   });
 
 });

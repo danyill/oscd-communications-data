@@ -16,6 +16,10 @@ import type { OscdFilteredList } from './foundation/components/oscd-filtered-lis
 
 import './foundation/components/oscd-textfield.js';
 
+function getConnectedItems(doc: Element, nodePathName): Array {
+  console.log('hey');
+}
+
 export default class CommunicationsDataPlugin extends LitElement {
   @property({ attribute: false })
   doc!: XMLDocument;
@@ -59,6 +63,13 @@ export default class CommunicationsDataPlugin extends LitElement {
       )
     );
     return busNodes;
+  }
+
+  getBusConnectedElements(busName: string): void {
+    const busNodePathName = this.getBuses()
+      .get(busName)
+      ?.getAttribute('pathName');
+    return getConnectedItems(this.doc.documentElement, busNodePathName);
   }
 
   async docUpdate(): Promise<void> {
