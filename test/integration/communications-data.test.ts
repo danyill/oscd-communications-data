@@ -29,7 +29,8 @@ describe('Export Communication section functions', () => {
   // });
 
   it('can detect 4 x buses', async () => {
-    const result = Array.from(element.getBuses().keys())
+    const buses = element.getBuses()
+    const result = Array.from(buses!.keys())
     expect(result).to.eql(['Bus_A', 'Bus_B', 'Bus_K', 'Bus_L'])
   });
 
