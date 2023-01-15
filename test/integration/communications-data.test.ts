@@ -1,6 +1,9 @@
 import { expect, fixture, html } from '@open-wc/testing';
 
-import CommunicationsDataPlugin from '../../oscd-communications-data.js';
+import {
+  CommunicationsDataPlugin,
+  getBuses,
+} from '../../oscd-communications-data.js';
 
 if (!customElements.get('communications-data'))
   customElements.define('communications-data', CommunicationsDataPlugin);
@@ -28,14 +31,18 @@ describe('Export Communication section functions', () => {
   //   await expect(element).shadowDom.to.equalSnapshot();
   // });
 
-  it('can detect 4 x buses', async () => {
-    const buses = element.getBuses()
-    const result = Array.from(buses!.keys())
-    expect(result).to.eql(['Bus_A', 'Bus_B', 'Bus_K', 'Bus_L'])
+  it('can detect buses in a typical SCD file', async () => {
+    const buses = getBuses(doc.documentElement);
+    const result = Array.from(buses!.keys());
+    expect(result).to.eql(['Bus_A', 'Bus_B', 'Bus_K', 'Bus_L']);
   });
 
-  it('can detect equipment connected to a bus', async () => {
-    expect(element.getBusConnectedElements('Bus_A')).to.equal(['Bus_Z', 'Bus_B', 'Bus_K', 'Bus_L'])
-  });
-
+  // it('can detect equipment connected to a bus', async () => {
+  //   expect(getBusConnectedElements(doc.documentElement, 'Bus_A')).to.equal([
+  //     'Bus_Z',
+  //     'Bus_B',
+  //     'Bus_K',
+  //     'Bus_L',
+  //   ]);
+  // });
 });

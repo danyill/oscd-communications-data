@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SCL xmlns="http://www.iec.ch/61850/2003/SCL" xsi:schemaLocation="http://www.iec.ch/61850/2003/SCL SCL.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2007" revision="B" release="4">
-  <Header id="Protection and Automation Test Lab" nameStructure="IEDName" revision="R0.0" toolID="" version="V1.0"/>
-  <Substation name="XAT" desc="Protection and Automation Test Lab" sxy:dir="vertical" xmlns:sxy="http://www.iec.ch/61850/2003/SCLcoordinates">
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" xsi:schemaLocation="http://www.iec.ch/61850/2003/SCL SCL.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2007" revision="B" release="4">
+	<Header id="Protection and Automation Test Lab" nameStructure="IEDName" revision="R0.0" toolID="" version="V1.0"/>
+	<Substation name="XAT" desc="Protection and Automation Test Lab" sxy:dir="vertical"
+		xmlns:sxy="http://www.iec.ch/61850/2003/SCLcoordinates">
 		<Text>Protection and Automation Test Lab</Text>
 		<VoltageLevel name="220kV" desc="220 kV" nomFreq="50" numPhases="3">
 			<Voltage unit="V" multiplier="k">220</Voltage>
 			<Bay name="T1" desc="T1" sxy:dir="vertical" sxy:x="2" sxy:y="16">
-				<PowerTransformer name="T1" desc="T1"  type="PTR">
+				<PowerTransformer name="T1" desc="T1" type="PTR">
 					<TransformerWinding name="W1" type="PTW">
 						<Terminal name="T1" connectivityNode="XAT/V220/B240/L1" cNodeName="L1"/>
 						<NeutralPoint name="N" connectivityNode="XAT/V220/B240/L0" cNodeName="L1"/>
@@ -284,7 +286,7 @@
 					<SubFunction name="Line Differential">
 						<LNode ldInst="LDif" prefix="I_" lnClass="PDIF" lnInst="1">
 							<Text>LDif</Text>
-					</LNode>
+						</LNode>
 					</SubFunction>
 					<SubFunction name="Distance">
 						<LNode ldInst="Dist" prefix="MHO_" lnClass="PDIS" lnInst="1">
@@ -321,7 +323,7 @@
 					<SubFunction name="Directional Earth Fault">
 						<LNode ldInst="DEF" prefix="DND_" lnClass="PTOC" lnInst="1">
 							<Text>DEF</Text>
-					</LNode>
+						</LNode>
 					</SubFunction>
 					<SubFunction name="Negative Sequence">
 						<LNode ldInst="NegSeq" prefix="DI2_" lnClass="PTOC" lnInst="1">
@@ -723,7 +725,7 @@
 					<SubFunction name="Line Differential">
 						<LNode ldInst="LDif" prefix="I_" lnClass="PDIF" lnInst="1">
 							<Text>LDif</Text>
-					</LNode>
+						</LNode>
 					</SubFunction>
 					<SubFunction name="Distance">
 						<LNode ldInst="Dist" prefix="MHO_" lnClass="PDIS" lnInst="1">
@@ -760,7 +762,7 @@
 					<SubFunction name="Directional Earth Fault">
 						<LNode ldInst="DEF" prefix="DND_" lnClass="PTOC" lnInst="1">
 							<Text>DEF</Text>
-					</LNode>
+						</LNode>
 					</SubFunction>
 					<SubFunction name="Negative Sequence">
 						<LNode ldInst="NegSeq" prefix="DI2_" lnClass="PTOC" lnInst="1">
