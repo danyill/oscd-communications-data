@@ -1,6 +1,11 @@
 import { Graph } from '@api-modeling/graphlib';
 import { NodeIdentifier } from '@api-modeling/graphlib/src/types.js';
 
+export interface dfsResult {
+  acc: Record<NodeIdentifier, NodeIdentifier>;
+  parents: Record<NodeIdentifier, null | NodeIdentifier>;
+}
+
 /**
  * @param {Graph} g
  * @param {NodeIdentifier} v
@@ -36,7 +41,7 @@ function doDfs<G, N, E>(
 
     navigation(v)?.forEach(w => {
       // eslint-disable-next-line no-param-reassign
-      parents[w] = v;
+      if (!parents[w]) parents[w] = v;
       doDfs(g, w, postOrder, visited, parents, navigation, acc, callback);
     });
     // if (postOrder) {
@@ -68,7 +73,7 @@ export function dfs<G, N, E>(
     gg: Graph<G, N, E>,
     parents2: Record<NodeIdentifier, null | NodeIdentifier>
   ) => boolean
-): Record<any,any> {
+): dfsResult {
   // NodeIdentifier[]
   if (!Array.isArray(vs)) {
     // eslint-disable-next-line no-param-reassign
@@ -87,5 +92,20 @@ export function dfs<G, N, E>(
     }
     doDfs(g, v, order === 'post', visited, parents, navigation, acc, callback);
   });
-  return {acc, parents};
+  return { acc, parents };
+}
+
+export function getDfsEdges<G, N, E>(
+  result: dfsResult,
+  g: Graph<G, N, E>
+): NonNullable<E>[] {
+  const edges = [];
+  if (result.acc.length > 1) {
+    for (let index = 1; index < result.acc.length; index += 1) {
+      const currentNode = result.acc[index];
+      const edge = g.edge(currentNode, result.parents[currentNode]!);
+      if (edge) edges.push(edge);
+    }
+  }
+  return edges;
 }

@@ -26,7 +26,7 @@ import {
 } from './foundation/identities/selector.js';
 import { identity } from './foundation/identities/identity.js';
 
-import { dfs } from './foundation/graph/dfs.js';
+import { dfs, getDfsEdges, dfsResult } from './foundation/graph/dfs.js';
 
 function hi<G, E, V>(
   accumulator: NodeIdentifier[],
@@ -191,33 +191,32 @@ export function play(doc: Element): void {
     });
   });
 
-  function getCtBoundedNodes<G, E, V>(
+  function getBoundedNodes<G, E, V>(
     gr: Graph<G, E, V>,
-    pathName: string
-  ): Record<any,any> {
+    pathName: string,
+    boundingType: string
+  ): dfsResult {
     return dfs(
       gr,
       pathName,
       'pre',
-      (accumulator: NodeIdentifier[], graph: Graph<G, E, V>, parents: Record<NodeIdentifier, null | NodeIdentifier>): boolean => {
+      (
+        accumulator: NodeIdentifier[],
+        graph: Graph<G, E, V>,
+        parents: Record<NodeIdentifier, null | NodeIdentifier>
+      ): boolean => {
         let theEdge;
         if (accumulator.length > 1) {
-          const previousNodes = accumulator.slice(-1);
-          theEdge = graph.edge(previousNodes[0], parents[previousNodes[0]]!);
-          // console.log(theEdge)
-          // theEdge = graph.edge(previousNodes[0], previousNodes[1]);
-          // if (!theEdge) {
-          //   theEdge = graph.edge(previousNodes[1], accumulator[0]);
-          // }
-          // console.log(accumulator)
-          // , 'parents', parents)
-          // console.log('p', parents)
+          const currentNode = accumulator.slice(-1);
+          theEdge = graph.edge(currentNode[0], parents[currentNode[0]]!);
+
           if (theEdge) {
             const sclConductingEquipment = doc.querySelector(
               selector('ConductingEquipment', <string>theEdge.toString())
             );
-            if (sclConductingEquipment?.getAttribute('type') === 'CTR')
+            if (sclConductingEquipment?.getAttribute('type') === boundingType)
               return true;
+            // true;
           }
         }
         return false;
@@ -225,21 +224,10 @@ export function play(doc: Element): void {
     );
   }
 
-  function getEquipmentFromNodes(
-    boundedNodes: NodeIdentifier[]
-  ): (Element | null)[] {
-    let keptEquipment = [];
-    if (boundedNodes.length > 1) {
-      for (let index = 1; index < boundedNodes.length; index += 1) {
-        const edge = g.edge(boundedNodes[index - 1], boundedNodes[index]);
-        const edgeToInitialNode = g.edge(boundedNodes[0], boundedNodes[index]);
-        if (edge) keptEquipment.push(edge.toString());
-        if (edgeToInitialNode) keptEquipment.push(edgeToInitialNode.toString());
-      }
-    }
-    keptEquipment = keptEquipment.map(kc => {
-      const sclConductingEquipment = doc.querySelector(
-        selector('ConductingEquipment', <string>kc.toString())
+  function getConductingEquipment<E>(sclDoc: Element, edges: NonNullable<E>[]) {
+    const keptEquipment = edges.map(ce => {
+      const sclConductingEquipment = sclDoc.querySelector(
+        selector('ConductingEquipment', <string>ce.toString())
       );
       if (sclConductingEquipment) return sclConductingEquipment;
       return null;
@@ -247,22 +235,46 @@ export function play(doc: Element): void {
     return keptEquipment;
   }
 
-  const myTerminal = doc
-    .querySelector(':root > Substation PowerTransformer[name="T2"]')
-    ?.querySelector('Terminal')
-    ?.getAttribute('connectivityNode');
-  //
-  // console.log(myTerminal);
-  // 'XAT/V220/Bus_A/L1'
-  //
-  // myTerminal!
+  function getEquipment<G, E, V>(
+    gg: Graph<G, E, V>,
+    terminal: string,
+    typet: string
+  ): void {
+    const equipment = getConductingEquipment(
+      doc,
+      getDfsEdges(getBoundedNodes(gg, terminal, typet), g)
+    );
+    equipment
+      .filter(e => e?.getAttribute('type') === typet)
+      // eslint-disable-next-line no-console
+      .forEach(e => console.log(e?.getAttribute('name')));
+  }
 
-  console.log(getCtBoundedNodes(g, 'XAT/V220/B240/L1').parents);
+  let myTerminal = '';
 
-  // getEquipmentFromNodes(getCtBoundedNodes(g, 'XAT/V220/B240/L1' ))
-  //   .filter(e => e?.getAttribute('type') === 'CTR')
-  //   // eslint-disable-next-line no-console
-  //   .forEach(e => console.log(e?.getAttribute('name')));
+  // Transformer
+  // myTerminal = doc
+  //   .querySelector(':root > Substation PowerTransformer[name="T1"]')
+  //   ?.querySelector('Terminal')
+  //   ?.getAttribute('connectivityNode')!;
+
+  // Bus
+  myTerminal = doc
+    .querySelector(':root > Substation Bay[name="Bus_A"] > ConnectivityNode')
+    ?.getAttribute('pathName')!;
+
+  // Line
+  // myTerminal = doc
+  //   .querySelector(
+  //     ':root ConductingEquipment[type="IFL"][desc="SOM-XAT 1"] > Terminal'
+  //   )
+  //   ?.getAttribute('connectivityNode')!;
+
+  console.log('Starting point: ', myTerminal);
+
+  getEquipment(g, myTerminal, 'CTR');
+
+  // console.log('BoundedNodes', getBoundedNodes(g, myTerminal, 'CBR'));
 
   // console.log(makeGraphvizOutput(g))
 }
