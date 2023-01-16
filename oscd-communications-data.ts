@@ -3,7 +3,7 @@ import { property, query } from 'lit/decorators.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { msg, str } from '@lit/localize';
 
-import { Graph, alg } from '@api-modeling/graphlib';
+import { Graph, NodeIdentifier } from '@api-modeling/graphlib';
 
 // added to src/alg/index.js
 // export { default as dfs } from './dfs.js';
@@ -20,8 +20,27 @@ import type { RadioListItem } from '@material/mwc-list/mwc-radio-list-item';
 import type { OscdFilteredList } from './foundation/components/oscd-filtered-list.js';
 
 import './foundation/components/oscd-textfield.js';
-import { terminalSelector } from './foundation/identities/selector.js';
+import {
+  selector,
+  terminalSelector,
+} from './foundation/identities/selector.js';
 import { identity } from './foundation/identities/identity.js';
+
+import { dfs } from './foundation/graph/dfs.js';
+
+function hi<G, E, V>(
+  accumulator: NodeIdentifier[],
+  g: Graph<G, E, V>
+): boolean {
+  if (accumulator.length > 1) {
+    const lastTwo = accumulator.slice(-2);
+    const theEdge = g.edge(lastTwo[0], lastTwo[1]);
+    if (theEdge && (<string>theEdge).includes('CT')) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * TODO: Refactor more generally? Helinks does a weird thing for bus detection too.
@@ -115,16 +134,9 @@ export function makeGraphvizOutput(
 // export function getConnectivityPath(doc: Element);
 
 export function play(doc: Element): void {
-  console.log('hi');
 
   const g = new Graph({ directed: false });
-  // g.setGraph('graph label');
-  // g.setNode('a', 123);
-  // g.setPath(['a', 'b', 'c']);
-  // g.setEdge('a', 'c', 456);
-  // console.log(g.nodes());
-  // let g1 = EdgeGraphSorted.empty<string>();
-  // let g2 = EdgeGraphSorted
+
   doc.querySelectorAll('Terminal').forEach(t => {
     g.setNode(t.getAttribute('connectivityNode')!, t);
   });
@@ -145,7 +157,7 @@ export function play(doc: Element): void {
       g.setEdge(
         identity(ce),
         terminals[0]!.getAttribute('connectivityNode')!,
-        ''
+        identity(ce)
       );
     }
   });
@@ -180,17 +192,55 @@ export function play(doc: Element): void {
     });
   });
 
-  // console.log(makeGraphvizOutput(g));
+  const ctBoundedNodes = dfs(
+    g,
+    'XAT/V220/Bus_A/L1',
+    'pre',
+    <G, E, V>(
+      accumulator: NodeIdentifier[],
+      graph: Graph<G, E, V>
+    ): boolean => {
+      if (accumulator.length > 1) {
+        const previousNodes = accumulator.slice(-2);
+        const theEdge = graph.edge(previousNodes[0], previousNodes[1]);
+        if (theEdge) {
+          const sclConductingEquipment = doc.querySelector(
+            selector('ConductingEquipment', <string>theEdge.toString())
+          );
+          if (sclConductingEquipment?.getAttribute('type') === 'CTR')
+            return true;
+        }
+      }
+      return false;
+    }
+  );
 
-  console.log(alg.bfs(g, 'XAT/V220/Bus_A/L1'));
-  // console.log(g.edges());
-  // console.log(json.write(g));
+  function getEquipmentFromNodes(
+    boundedNodes: NodeIdentifier[]
+  ): (Element | null)[] {
+    let keptEquipment = [];
+    if (boundedNodes.length > 1) {
+      for (let index = 1; index < boundedNodes.length; index += 1) {
+        const edge = g.edge(boundedNodes[index - 1], boundedNodes[index]);
+        const edgeToInitialNode = g.edge(boundedNodes[0], boundedNodes[index]);
+        if (edge) keptEquipment.push(edge.toString());
+        if (edgeToInitialNode) keptEquipment.push(edgeToInitialNode.toString());
+      }
+    }
+    keptEquipment = keptEquipment.map(kc => {
+      const sclConductingEquipment = doc.querySelector(
+        selector('ConductingEquipment', <string>kc.toString())
+      );
+      if (sclConductingEquipment) return sclConductingEquipment;
+      return null;
+    });
+    return keptEquipment;
+  }
 
-  // console.log(g1.toString());
-  // console.log(EdgeGraphSorted.of([1, 2], [2, 3], [3, 1], [5]).toString());
+  getEquipmentFromNodes(ctBoundedNodes)
+    .filter(e => e?.getAttribute('type') === 'DIS')
+    .forEach(e => console.log(e?.getAttribute('name')));
 
-  // const g = new Graph<string, number>();
-  // g.addVertex('a', 1);
 }
 
 function getConnectedIeds(doc: Element, nodePathName: string): Array<string> {
