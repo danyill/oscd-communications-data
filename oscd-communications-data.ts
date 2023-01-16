@@ -134,7 +134,6 @@ export function makeGraphvizOutput(
 // export function getConnectivityPath(doc: Element);
 
 export function play(doc: Element): void {
-
   const g = new Graph({ directed: false });
 
   doc.querySelectorAll('Terminal').forEach(t => {
@@ -192,28 +191,39 @@ export function play(doc: Element): void {
     });
   });
 
-  const ctBoundedNodes = dfs(
-    g,
-    'XAT/V220/Bus_A/L1',
-    'pre',
-    <G, E, V>(
-      accumulator: NodeIdentifier[],
-      graph: Graph<G, E, V>
-    ): boolean => {
-      if (accumulator.length > 1) {
-        const previousNodes = accumulator.slice(-2);
-        const theEdge = graph.edge(previousNodes[0], previousNodes[1]);
-        if (theEdge) {
-          const sclConductingEquipment = doc.querySelector(
-            selector('ConductingEquipment', <string>theEdge.toString())
-          );
-          if (sclConductingEquipment?.getAttribute('type') === 'CTR')
-            return true;
+  function getCtBoundedNodes<G, E, V>(
+    gr: Graph<G, E, V>,
+    pathName: string
+  ): Record<any,any> {
+    return dfs(
+      gr,
+      pathName,
+      'pre',
+      (accumulator: NodeIdentifier[], graph: Graph<G, E, V>, parents: Record<NodeIdentifier, null | NodeIdentifier>): boolean => {
+        let theEdge;
+        if (accumulator.length > 1) {
+          const previousNodes = accumulator.slice(-1);
+          theEdge = graph.edge(previousNodes[0], parents[previousNodes[0]]!);
+          // console.log(theEdge)
+          // theEdge = graph.edge(previousNodes[0], previousNodes[1]);
+          // if (!theEdge) {
+          //   theEdge = graph.edge(previousNodes[1], accumulator[0]);
+          // }
+          // console.log(accumulator)
+          // , 'parents', parents)
+          // console.log('p', parents)
+          if (theEdge) {
+            const sclConductingEquipment = doc.querySelector(
+              selector('ConductingEquipment', <string>theEdge.toString())
+            );
+            if (sclConductingEquipment?.getAttribute('type') === 'CTR')
+              return true;
+          }
         }
+        return false;
       }
-      return false;
-    }
-  );
+    );
+  }
 
   function getEquipmentFromNodes(
     boundedNodes: NodeIdentifier[]
@@ -237,10 +247,24 @@ export function play(doc: Element): void {
     return keptEquipment;
   }
 
-  getEquipmentFromNodes(ctBoundedNodes)
-    .filter(e => e?.getAttribute('type') === 'DIS')
-    .forEach(e => console.log(e?.getAttribute('name')));
+  const myTerminal = doc
+    .querySelector(':root > Substation PowerTransformer[name="T2"]')
+    ?.querySelector('Terminal')
+    ?.getAttribute('connectivityNode');
+  //
+  // console.log(myTerminal);
+  // 'XAT/V220/Bus_A/L1'
+  //
+  // myTerminal!
 
+  console.log(getCtBoundedNodes(g, 'XAT/V220/B240/L1').parents);
+
+  // getEquipmentFromNodes(getCtBoundedNodes(g, 'XAT/V220/B240/L1' ))
+  //   .filter(e => e?.getAttribute('type') === 'CTR')
+  //   // eslint-disable-next-line no-console
+  //   .forEach(e => console.log(e?.getAttribute('name')));
+
+  // console.log(makeGraphvizOutput(g))
 }
 
 function getConnectedIeds(doc: Element, nodePathName: string): Array<string> {
@@ -336,8 +360,8 @@ export class CommunicationsDataPlugin extends LitElement {
         label="IEDs (nah)"
         slot="primaryAction"
         icon="add"
-        @click="${() => console.log('hi')}
-        ?disabled=${false}
+        @click="${() => true}
+        disabled=false
       ></mwc-button>
     </mwc-dialog>`;
   }

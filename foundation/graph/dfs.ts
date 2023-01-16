@@ -14,21 +14,30 @@ function doDfs<G, N, E>(
   v: NodeIdentifier,
   postOrder: boolean,
   visited: Record<NodeIdentifier, boolean>,
+  parents: Record<NodeIdentifier, null | NodeIdentifier>,
   navigation: (f: NodeIdentifier) => NodeIdentifier[] | undefined,
   acc: NodeIdentifier[],
-  callback: (x: NodeIdentifier[], graph: Graph<G, N, E>) => boolean
+  callback: (
+    accumulator: NodeIdentifier[],
+    graph: Graph<G, N, E>,
+    parents2: Record<NodeIdentifier, null | NodeIdentifier>
+  ) => boolean
 ) {
   if (!visited[v]) {
     // eslint-disable-next-line no-param-reassign
     visited[v] = true;
-
+    // eslint-disable-next-line no-param-reassign
+    // https://people.engr.tamu.edu/andreas-klappenecker/csce411-s19/csce411-graphs2.pdf
     // if (!postOrder) {
+
     acc.push(v);
-    if (callback(acc, g)) return;
+    if (callback(acc, g, parents)) return;
     // }
 
     navigation(v)?.forEach(w => {
-      doDfs(g, w, postOrder, visited, navigation, acc, callback);
+      // eslint-disable-next-line no-param-reassign
+      parents[w] = v;
+      doDfs(g, w, postOrder, visited, parents, navigation, acc, callback);
     });
     // if (postOrder) {
     // acc.push(v);
@@ -54,8 +63,13 @@ export function dfs<G, N, E>(
   g: Graph<G, N, E>,
   vs: NodeIdentifier | NodeIdentifier[],
   order: 'pre' | 'post',
-  callback: (accumulator: NodeIdentifier[], gg: Graph<G, N, E>) => boolean
-): NodeIdentifier[] {
+  callback: (
+    accumulator: NodeIdentifier[],
+    gg: Graph<G, N, E>,
+    parents2: Record<NodeIdentifier, null | NodeIdentifier>
+  ) => boolean
+): Record<any,any> {
+  // NodeIdentifier[]
   if (!Array.isArray(vs)) {
     // eslint-disable-next-line no-param-reassign
     vs = [vs];
@@ -66,11 +80,12 @@ export function dfs<G, N, E>(
   const acc: any = [];
   /** @type Record<NodeIdentifier, boolean> */
   const visited = {};
+  const parents = {};
   vs.forEach(v => {
     if (!g.hasNode(v)) {
       throw new Error(`Graph does not have node: ${v}`);
     }
-    doDfs(g, v, order === 'post', visited, navigation, acc, callback);
+    doDfs(g, v, order === 'post', visited, parents, navigation, acc, callback);
   });
-  return acc;
+  return {acc, parents};
 }
