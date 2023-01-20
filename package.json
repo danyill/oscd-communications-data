@@ -36,7 +36,6 @@
     "@material/mwc-switch": "^0.27.0",
     "@material/mwc-textfield": "^0.27.0",
     "@openscd/open-scd-core": "^0.0.1-rc2.8",
-    "graphology": "^0.25.1",
     "lit": "^2.4.0"
   },
   "devDependencies": {

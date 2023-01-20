@@ -19,6 +19,7 @@ describe('Export Communication unit tests', () => {
   let doc: XMLDocument;
 
   beforeEach(async () => {
+    // doc = await fetch('/test/testfiles/2023-01-19-SLDs.ssd')
     doc = await fetch('/test/testfiles/XAT.ssd')
       .then(response => response.text())
       .then(str => new DOMParser().parseFromString(str, 'application/xml'));
@@ -89,7 +90,7 @@ describe('Export Communication unit tests', () => {
   it('can do something', async () => {
     play(doc.documentElement);
     // console.log('hi');
-    expect(true)
+    expect(true);
     // expect(
     //   getLNodesFromBays(doc.documentElement, ['B220']).map(
     //     b =>

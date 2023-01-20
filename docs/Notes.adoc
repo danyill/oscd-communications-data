@@ -1,0 +1,23 @@
+= Notes
+
+Select IFL:
+
+Find: nearest CT -> allocate to CT
+Find: nearest VT -> allocate to VT
+Find: nearest CB -> allocate to CB
+
+Good enough for single line, with bus VT or line VT.
+How to get the backup VT?
+Get nearest VT
+Get depth to all VTs from where you are, and choose the backup VT.
+Specifically, filter equipment by voltage level of the IFL.
+Choose the nearest
+If they are equal, choose the alphabetically lowest.
+
+For 1.5 CB:
+
+Find: path to buses
+Excluded.
+
+Will require synchrophasor autoreclose.
+15 s dead time problem.

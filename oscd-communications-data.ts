@@ -3,7 +3,13 @@ import { property, query } from 'lit/decorators.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { msg, str } from '@lit/localize';
 
-import { Graph, NodeIdentifier } from '@api-modeling/graphlib';
+import {
+  alg,
+  EdgeBase,
+  Edge,
+  Graph,
+  NodeIdentifier,
+} from '@api-modeling/graphlib';
 
 // added to src/alg/index.js
 // export { default as dfs } from './dfs.js';
@@ -123,7 +129,7 @@ export function makeGraphvizOutput(
   let graphvizOutput = '';
   graphvizOutput += `digraph G {`;
   graph.edges().forEach(edge => {
-    graphvizOutput += `"${edge.v}" -> "${edge.w}" [label="${graph.edge(
+    graphvizOutput += `"${edge.v}" -- "${edge.w}" [label="${graph.edge(
       edge
     )}"]\n`;
   });
@@ -276,7 +282,76 @@ export function play(doc: Element): void {
 
   // console.log('BoundedNodes', getBoundedNodes(g, myTerminal, 'CBR'));
 
-  // console.log(makeGraphvizOutput(g))
+  // Line
+  myTerminal = doc
+    .querySelector(
+      ':root ConductingEquipment[type="IFL"][desc="SOM-XAT 1"] > Terminal'
+    )
+    ?.getAttribute('connectivityNode')!;
+
+  // console.log(myTerminal);
+
+  // console.log(makeGraphvizOutput(g));
+
+  // console.log(alg.components(g));
+
+  // function weight(e) {
+  //   return g.edge(e);
+  // }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function weight(e: Edge<unknown>) {
+    return 1;
+    // <number>g.edge(e);
+  }
+
+  function edgey(v: NodeIdentifier): Edge<unknown>[] {
+    return [...g.inEdges(v)!, ...g.outEdges(v)!];
+  }
+
+  function getEquipmentFromNodes<G, N, E>(
+    nodes: NodeIdentifier[],
+    gx: Graph<G, N, E>
+  ): Map<any, any> {
+    // Record<NodeIdentifier, Edge<E>>
+    // NonNullable<E>[]
+    const mapping = new Map();
+    const edgesZ = gx.edges();
+
+    mapping.set('a', 'b');
+    console.log(Array.from(mapping.keys()));
+
+    nodes.forEach(node => {
+      edgesZ.forEach(edge => {
+        if (edge.v === node || edge.w === node) {
+          if (mapping.has(node)) {
+            const existing = mapping.get(node);
+            mapping.set(node, existing.concat(edge));
+          } else {
+            mapping.set(node, [edge]);
+          }
+        }
+      });
+    });
+    return mapping;
+  }
+
+  const res = getEquipmentFromNodes(g.nodes(), g).values();
+  console.log(res);
+
+  const distanceToNodes = alg.dijkstra(g, myTerminal, weight, edgey);
+  console.log(distanceToNodes);
+
+  Object.keys(distanceToNodes).forEach(node => {
+    const myEdge = g.edge(node, distanceToNodes[node].predecessor!);
+    if (myEdge) {
+      console.log(myEdge, distanceToNodes[node].distance);
+    }
+  });
+
+  // .forEach((node, nodePath) => {
+  //   console.log(node, nodePath);
+  // });
+  // console.log(alg.floydWarshall(g));
 }
 
 function getConnectedIeds(doc: Element, nodePathName: string): Array<string> {
